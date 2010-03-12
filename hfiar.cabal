@@ -26,9 +26,11 @@ source-repository head
 
 Executable hfiar
     build-depends: base >= 4,                   base < 5,
+                   mtl >=1.1.0,                 mtl < 1.2,
                    eprocess >= 1.1.0,           eprocess < 2,
                    wxcore >=0.11.1,             wxcore < 0.13,
                    wx >=0.11.1,                 wx < 0.13
+    extensions: MultiParamTypeClasses, GeneralizedNewtypeDeriving
     main-is: Main.hs
     buildable: True
     hs-source-dirs: src
