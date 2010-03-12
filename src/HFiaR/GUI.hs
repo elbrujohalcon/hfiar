@@ -26,9 +26,9 @@ gui = do
         
         player <- staticText win [text := "Green Player Turn"]
         
-        columns <- forM [1..7] (\c ->
+        columns <- forM [0..6] (\c ->
                                 do
-                                  cells <- forM [1..7] (\r -> staticTextCreate win (cellId c r) "" rectNull 0)
+                                  cells <- forM [0.. 6] (\r -> staticTextCreate win (cellId c r) "" rectNull 0)
                                   btn   <- button win [identity     := buttonId c,
                                                        text         := "Select"]
                                   return $ GUICol c cells btn
@@ -73,15 +73,7 @@ selectColumn c GUICtx{guiWin = win} model =
                 return ()
 
 restartGame :: GUIContext -> HFS.ServerHandle -> IO ()
-restartGame GUICtx{guiWin = win} model =
-    do
-        --TODO: Verify if the player wants to restart the game even if it hasn't ended yet
-        res <- HFS.runIn model $ restart
-        case res of
-            Left err ->
-                errorDialog win "Four in a Row" $ show err
-            Right () ->
-                return ()
+restartGame _guiCtx model = HFS.runIn model $ restart --TODO: Verify if the player wants to restart the game even if it hasn't ended yet
 
 refreshGUI :: GUIContext -> HFS.ServerHandle -> IO ()
 refreshGUI GUICtx{guiPlayer = player, guiColumns = columns, guiWin = win} model =
@@ -91,22 +83,22 @@ refreshGUI GUICtx{guiPlayer = player, guiColumns = columns, guiWin = win} model 
             Left GameEnded ->
                 do
                     forM_ columns $ \GUICol{colButton = b} -> set b [enabled := False]
-                    res2 <- HFS.runIn model winner
+                    res2 <- HFS.runIn model result
                     case res2 of
                         Left err ->
                             errorDialog win "Four in a Row" $ show err
-                        Right None ->
+                        Right Tie ->
                             set player [text := "It was a tie"]
-                        Right Green ->
+                        Right (WonBy Green) ->
                             set player [text := "Green Player won"]
-                        Right Red ->
+                        Right (WonBy Red) ->
                             set player [text := "Red Player won"]
             Left err ->
                 errorDialog win "Four in a Row" $ show err
             Right p ->
                 do
                     set player [text := (show p) ++ " Player turn"]
-                    res2 <- HFS.runIn model columns
+                    res2 <- HFS.runIn model board
                     case res2 of
                         Left err ->
                             errorDialog win "Four in a Row" $ show err
