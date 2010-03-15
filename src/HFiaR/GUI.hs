@@ -55,7 +55,7 @@ gui = do
         set win [menuBar := [mnuGame, mnuHelp]]
         
         let columnLayout GUICol{colCells = cs, colButton = b} =
-                (hfill $ widget b) : (map (fill . boxed "" . floatCenter . widget) cs)
+                (hfill $ widget b) : (map (fill . boxed "" . floatCenter . widget) $ reverse cs)
         set win [layout := column 5 [hfill . boxed "" . floatCenter $ widget player,
                                      grid 1 1 . transpose $ map columnLayout columns],
                  clientSize := sz 500 500]
@@ -97,18 +97,15 @@ refreshGUI GUICtx{guiPlayer = player, guiColumns = columns, guiWin = win} model 
                 errorDialog win "Four in a Row" $ show err
             Right p ->
                 do
+                    forM_ columns $ \GUICol{colButton = b} -> set b [enabled := True]
                     set player [text := (show p) ++ " Player turn"]
-                    res2 <- HFS.runIn model board
-                    case res2 of
-                        Left err ->
-                            errorDialog win "Four in a Row" $ show err
-                        Right cols ->
-                            forM_ columns $ \GUICol{colCells = cells,
-                                                    colNumber= coln} ->
-                                                do
-                                                    forM_ cells $ \cell -> set cell [text := ""]
-                                                    zipWithM_ (\cell val -> set cell [text := show val])
-                                                              cells (cols !! coln)
+        cols <- HFS.runIn model board
+        forM_ columns $ \GUICol{colCells = cells,
+                                colNumber= coln} ->
+                            do
+                                forM_ cells $ \cell -> set cell [text := ""]
+                                zipWithM_ (\cell val -> set cell [text := show val])
+                                            cells (reverse $ cols !! coln)
 
 -------------------------------------------------------------------------------------------------------------------------
 cellId :: Int -> Int -> Id
