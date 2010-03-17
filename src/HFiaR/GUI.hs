@@ -14,11 +14,13 @@ data GUIColumn  = GUICol { colNumber    :: Int,
 
 data GUIContext = GUICtx { guiWin       :: Frame (),
                            guiPlayer    :: StaticText (),
-                           guiColumns   :: [GUIColumn] }
+                           guiColumns   :: [GUIColumn],
+                           guiModel     :: Var HFS.ServerHandle }
 
 gui :: IO ()
 gui = do
         model <- HFS.start
+        modelVar <- varCreate model
         
         win <- frame [text := "Four in a Row"]
         
@@ -37,17 +39,17 @@ gui = do
         status <- statusField [text := ""] --NOTE: Just decorative
         set win [statusBar := [status]]
         
-        let guiCtx = GUICtx win player columns 
+        let guiCtx = GUICtx win player columns modelVar
         
         forM_ columns $ \GUICol{colButton = b, colNumber = c} ->
                             set b [on command := do
-                                                    selectColumn c guiCtx model
-                                                    refreshGUI guiCtx model]
+                                                    selectColumn c guiCtx
+                                                    refreshGUI guiCtx]
         
         -- Menu bar...
         mnuGame <- menuPane [text := "Game"]
         menuAppend mnuGame 5002 "&New\tCtrl-n" "New Game" False
-        evtHandlerOnMenuCommand win 5002 $ restartGame guiCtx model >> refreshGUI guiCtx model
+        evtHandlerOnMenuCommand win 5002 $ restartGame guiCtx >> refreshGUI guiCtx
         menuQuit mnuGame [on command := wxcAppExit]
         mnuHelp <- menuHelp []
         menuAppend mnuHelp 5009 "&Instructions\tCtrl-h" "Open the Instructions Page" False
@@ -62,9 +64,10 @@ gui = do
 
 
 -------------------------------------------------------------------------------------------------------------------------
-selectColumn :: Int -> GUIContext -> HFS.ServerHandle -> IO ()
-selectColumn c GUICtx{guiWin = win} model =
+selectColumn :: Int -> GUIContext -> IO ()
+selectColumn c GUICtx{guiWin = win, guiModel = modelVar} =
     do
+        model <- varGet modelVar
         res <- HFS.runIn model $ dropIn c
         case res of
             Left err ->
@@ -72,12 +75,19 @@ selectColumn c GUICtx{guiWin = win} model =
             Right () ->
                 return ()
 
-restartGame :: GUIContext -> HFS.ServerHandle -> IO ()
-restartGame _guiCtx model = HFS.runIn model $ restart --TODO: Verify if the player wants to restart the game even if it hasn't ended yet
-
-refreshGUI :: GUIContext -> HFS.ServerHandle -> IO ()
-refreshGUI GUICtx{guiPlayer = player, guiColumns = columns, guiWin = win} model =
+restartGame :: GUIContext -> IO ()
+restartGame GUICtx{guiModel = modelVar} =
+    --TODO: Verify if the player wants to restart the game even if it hasn't ended yet
     do
+        model <- varGet modelVar
+        HFS.stop model
+        newModel <- HFS.start
+        varSet modelVar newModel
+
+refreshGUI :: GUIContext -> IO ()
+refreshGUI GUICtx{guiPlayer = player, guiColumns = columns, guiWin = win, guiModel = modelVar} =
+    do
+        model <- varGet modelVar
         res1 <- HFS.runIn model currentPlayer
         case res1 of
             Left GameEnded ->

@@ -1,5 +1,5 @@
 name: hfiar
-version: 0.0.1
+version: 0.1.0
 cabal-version: >=1.6
 build-type: Custom
 license: BSD3
@@ -24,15 +24,20 @@ source-repository head
     type:     git
     location: git://github.com/elbrujohalcon/hfiar.git
 
-Executable hfiar
+Library
     build-depends: base >= 4,                   base < 5,
                    mtl >=1.1.0,                 mtl < 1.2,
-                   eprocess >= 1.1.0,           eprocess < 2,
-                   wxcore >=0.11.1,             wxcore < 0.13,
+                   eprocess >= 1.1.0,           eprocess < 2
+    extensions: MultiParamTypeClasses, GeneralizedNewtypeDeriving
+    exposed-modules: HFiaR
+    hs-source-dirs: src
+
+Executable hfiar
+    build-depends: wxcore >=0.11.1,             wxcore < 0.13,
                    wx >=0.11.1,                 wx < 0.13
     extensions: MultiParamTypeClasses, GeneralizedNewtypeDeriving
     main-is: Main.hs
     buildable: True
     hs-source-dirs: src
-    other-modules: HFiaR, HFiaR.GUI, HFiaR.Server
+    other-modules: HFiaR.GUI, HFiaR.Server
     ghc-options: -fwarn-unused-imports -fwarn-missing-fields -fwarn-incomplete-patterns
