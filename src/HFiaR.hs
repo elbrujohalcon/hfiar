@@ -1,7 +1,7 @@
 -- | This module defines the HFiaR monad and all the actions you can perform in it
 module HFiaR (
 -- * Monad controls
-    HFiaRT, HFiaR, play,
+    HFiaRT, play,
 -- * Types
     Player(..), HFiaRError(..), HFiaRResult(..),
 -- * Actions
@@ -44,9 +44,13 @@ instance Monad m => MonadState Game (HFiaRT m) where
     put = HFT . put
 
 -- | Specialized HFiaR IO monadic type
-type HFiaR = HFiaRT IO
+type HFiaR = HFiaRT (State ())
 
--- | Run the monad actions and return the result of them
+-- | Just run the monadic actions
+playHere :: HFiaR a -> a
+playHere actions = flip evalState () $ play actions
+
+-- | Run the monad actions inside a monad and return the result of them
 play :: Monad m => HFiaRT m a -> m a
 play actions = (state actions) `evalStateT` Game{gamePlayer = Green,
                                                  gameBoard  = replicate 7 [],
@@ -55,8 +59,8 @@ play actions = (state actions) `evalStateT` Game{gamePlayer = Green,
 
 --------------------------------------------------------------------------------
 -- | Drop a tile in a column
-dropIn :: Int -- ^ Column number
-       -> HFiaR (Either HFiaRError ())
+dropIn :: Monad m => Int -- ^ Column number
+       -> HFiaRT m (Either HFiaRError ())
 dropIn c | c < 0 = return $ Left InvalidColumn
          | 6 < c = return $ Left InvalidColumn
          | otherwise =
@@ -114,18 +118,18 @@ dropIn c | c < 0 = return $ Left InvalidColumn
           fourIn (Just p :xs) = ([Just p, Just p, Just p] == take 3 xs) || fourIn xs
 
 -- | Player who's supposed to play the next tile
-currentPlayer :: HFiaR (Either HFiaRError Player)
+currentPlayer :: Monad m => HFiaRT m (Either HFiaRError Player)
 currentPlayer = get >>= \Game{gameEnded = e,
                               gamePlayer= p} ->
                             return $ if e
                                         then Left GameEnded
                                         else Right p
 -- | Current board distribution
-board :: HFiaR [[Player]]
+board :: Monad m => HFiaRT m [[Player]]
 board = get >>= return . gameBoard
 
 -- | If the game ended, returns the result of it
-result :: HFiaR (Either HFiaRError HFiaRResult)
+result :: Monad m => HFiaRT m (Either HFiaRError HFiaRResult)
 result = get >>= \Game{gameEnded = e,
                        gameResult= r} ->
                             return $ if (not e)

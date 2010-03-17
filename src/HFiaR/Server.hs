@@ -13,7 +13,7 @@ import HFiaR
 
 -- | The server handle.  It's returned on process creation and should be used
 -- afterwards to send messages to it
-newtype ServerHandle = SH {handle :: Handle (HFiaR ())}
+newtype ServerHandle = SH {handle :: Handle (HFiaRT IO ())}
 
 -- | Starts the server. Usage:
 -- @
@@ -28,7 +28,7 @@ start = (spawn $ makeProcess play game) >>= return . SH
 --      result <- runIn serverhandle action
 -- @
 runIn :: ServerHandle   -- ^ The handle of the server that will run the action
-       -> HFiaR a       -- ^ The action to be run
+       -> HFiaRT IO a   -- ^ The action to be run
        -> IO a
 runIn server action = runHere $ do
                                     me <- self
