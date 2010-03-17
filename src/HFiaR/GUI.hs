@@ -9,7 +9,7 @@ import Graphics.UI.WXCore
 import Graphics.UI.WX
 
 data GUIColumn  = GUICol { colNumber    :: Int,
-                           colCells     :: [StaticText ()], --TODO: Use images
+                           colCells     :: [Panel ()],
                            colButton    :: Button () }
 
 data GUIContext = GUICtx { guiWin       :: Frame (),
@@ -30,8 +30,10 @@ gui = do
         
         columns <- forM [0..6] (\c ->
                                 do
-                                  cells <- forM [0.. 6] (\r -> staticTextCreate win (cellId c r) "" rectNull 0)
+                                  cells <- forM [0.. 6] (\r -> panelCreate win (cellId c r) rectNull 0)
+                                  forM_ cells $ \cell -> set cell [bgcolor := grey]
                                   btn   <- button win [identity     := buttonId c,
+                                                       bgcolor      := grey,
                                                        text         := "Select"]
                                   return $ GUICol c cells btn
                                   )
@@ -57,7 +59,7 @@ gui = do
         set win [menuBar := [mnuGame, mnuHelp]]
         
         let columnLayout GUICol{colCells = cs, colButton = b} =
-                (hfill $ widget b) : (map (fill . boxed "" . floatCenter . widget) $ reverse cs)
+                (hfill $ widget b) : (map (fill . widget) $ reverse cs)
         set win [layout := column 5 [hfill . boxed "" . floatCenter $ widget player,
                                      grid 1 1 . transpose $ map columnLayout columns],
                  clientSize := sz 500 500]
@@ -113,8 +115,11 @@ refreshGUI GUICtx{guiPlayer = player, guiColumns = columns, guiWin = win, guiMod
         forM_ columns $ \GUICol{colCells = cells,
                                 colNumber= coln} ->
                             do
-                                forM_ cells $ \cell -> set cell [text := ""]
-                                zipWithM_ (\cell val -> set cell [text := show val])
+                                forM_ cells $ \cell -> set cell [bgcolor := grey]
+                                zipWithM_ (\cell val -> set cell [bgcolor := case val of
+                                                                                Red   -> red
+                                                                                Green -> green
+                                                                 ])
                                             cells (reverse $ cols !! coln)
 
 -------------------------------------------------------------------------------------------------------------------------
