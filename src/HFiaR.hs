@@ -1,7 +1,9 @@
 -- | This module defines the HFiaR monad and all the actions you can perform in it
 module HFiaR (
--- * Monad controls
+-- * MonadTrans controls
     HFiaRT, play, eval,
+-- * Monad controls
+    HFiaR, justPlay, justEval,
 -- * Types
     Game, Player, Tile(..), HFiaRError(..), HFiaRResult(..),
 -- * Actions
@@ -50,9 +52,22 @@ instance Monad m => MonadState Game (HFiaRT m) where
     get = HFT $ get
     put = HFT . put
 
+-- | Basic HFiaR type - ready to /just/ play HFiaR actions
+type HFiaR = HFiaRT Maybe
+
+-- | Starts a game, run the /HFiaRT/ actions and returns the game
+justPlay :: HFiaR a -> Game
+justPlay actions = let Just r = play actions in r 
+
+-- | Starts a game, run the /HFiaRT/ actions and returns the result of the last one
+justEval :: HFiaR a -> a
+justEval actions = let Just r = eval actions in r
+
+-- | Starts a game, run the /HFiaRT/ actions and returns the game wrapped up in the /m/ monad
 play :: Monad m => HFiaRT m a -> m Game
 play actions = (state actions) `execStateT` (OnCourse (Pl Green) (replicate 7 []))
 
+-- | Starts a game, run the /HFiaRT/ actions and returns the result of the last one wrapped up in the /m/ monad
 eval :: Monad m => HFiaRT m a -> m a
 eval actions = (state actions) `evalStateT` (OnCourse (Pl Green) (replicate 7 []))
 
