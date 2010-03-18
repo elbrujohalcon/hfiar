@@ -26,7 +26,7 @@ gui = do
         
         set win [on closing := HFS.stop model >> propagateEvent]
         
-        player <- staticText win [text := "Green Player Turn"]
+        playerText <- staticText win [text := "Green Player Turn"]
         
         columns <- forM [0..6] (\c ->
                                 do
@@ -41,7 +41,7 @@ gui = do
         status <- statusField [text := ""] --NOTE: Just decorative
         set win [statusBar := [status]]
         
-        let guiCtx = GUICtx win player columns modelVar
+        let guiCtx = GUICtx win playerText columns modelVar
         
         forM_ columns $ \GUICol{colButton = b, colNumber = c} ->
                             set b [on command := do
@@ -60,7 +60,7 @@ gui = do
         
         let columnLayout GUICol{colCells = cs, colButton = b} =
                 (hfill $ widget b) : (map (fill . widget) $ reverse cs)
-        set win [layout := column 5 [hfill . boxed "" . floatCenter $ widget player,
+        set win [layout := column 5 [hfill . boxed "" . floatCenter $ widget playerText,
                                      grid 1 1 . transpose $ map columnLayout columns],
                  clientSize := sz 500 500]
 
@@ -87,10 +87,10 @@ restartGame GUICtx{guiModel = modelVar} =
         varSet modelVar newModel
 
 refreshGUI :: GUIContext -> IO ()
-refreshGUI GUICtx{guiPlayer = player, guiColumns = columns, guiWin = win, guiModel = modelVar} =
+refreshGUI GUICtx{guiPlayer = playerText, guiColumns = columns, guiWin = win, guiModel = modelVar} =
     do
         model <- varGet modelVar
-        res1 <- HFS.runIn model currentPlayer
+        res1 <- HFS.runIn model player
         case res1 of
             Left GameEnded ->
                 do
@@ -100,17 +100,15 @@ refreshGUI GUICtx{guiPlayer = player, guiColumns = columns, guiWin = win, guiMod
                         Left err ->
                             errorDialog win "Four in a Row" $ show err
                         Right Tie ->
-                            set player [text := "It was a tie"]
-                        Right (WonBy Green) ->
-                            set player [text := "Green Player won"]
-                        Right (WonBy Red) ->
-                            set player [text := "Red Player won"]
+                            set playerText [text := "It was a tie"]
+                        Right (WonBy p) ->
+                            set playerText [text := show p ++ " Player won!!"]
             Left err ->
                 errorDialog win "Four in a Row" $ show err
             Right p ->
                 do
                     forM_ columns $ \GUICol{colButton = b} -> set b [enabled := True]
-                    set player [text := (show p) ++ " Player turn"]
+                    set playerText [text := (show p) ++ " Player turn"]
         cols <- HFS.runIn model board
         forM_ columns $ \GUICol{colCells = cells,
                                 colNumber= coln} ->
