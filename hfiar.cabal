@@ -1,12 +1,12 @@
 name: hfiar
-version: 0.1.2
+version: 1.0.0
 cabal-version: >=1.6
 build-type: Custom
 license: BSD3
 license-file: LICENSE
 copyright: 2010 Fernando "Brujo" Benavides
 maintainer: greenmellon@gmail.com
-stability: provisional
+stability: stable
 homepage: http://github.com/elbrujohalcon/hfiar
 package-url: http://code.haskell.org/hfiar
 bug-reports: http://github.com/elbrujohalcon/hfiar/issues
