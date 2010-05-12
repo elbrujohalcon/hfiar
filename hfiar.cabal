@@ -1,5 +1,5 @@
 name: hfiar
-version: 1.1.0
+version: 1.2.0
 cabal-version: >=1.6
 build-type: Custom
 license: BSD3
@@ -14,7 +14,7 @@ synopsis: Four in a Row in Haskell!!
 description: The classical game, implemented with wxHaskell
 category: Game
 author: Fernando "Brujo" Benavides
-tested-with: GHC ==6.10.4
+tested-with: GHC ==6.12.1
 data-files: LICENSE README
 data-dir: ""
 extra-source-files: Setup.hs
@@ -27,14 +27,14 @@ source-repository head
 Library
     build-depends: base >= 4,                   base < 5,
                    mtl >=1.1.0,                 mtl < 1.2,
-                   eprocess >= 1.1.0,           eprocess < 2
+                   eprocess >= 1.1.2,           eprocess < 2
     extensions: MultiParamTypeClasses, GeneralizedNewtypeDeriving
     exposed-modules: HFiaR
     hs-source-dirs: src
 
 Executable hfiar
-    build-depends: wxcore >=0.11.1,             wxcore < 0.13,
-                   wx >=0.11.1,                 wx < 0.13
+    build-depends: wxcore >=0.12.1.4,           wxcore < 0.13,
+                   wx >=0.12.1.4,               wx < 0.13
     extensions: MultiParamTypeClasses, GeneralizedNewtypeDeriving
     main-is: Main.hs
     buildable: True
