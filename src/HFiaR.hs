@@ -53,15 +53,15 @@ instance Monad m => MonadState Game (HFiaRT m) where
     put = HFT . put
 
 -- | Basic HFiaR type - ready to /just/ play HFiaR actions
-type HFiaR = HFiaRT Maybe
+type HFiaR = HFiaRT IO
 
 -- | Starts a game, run the /HFiaRT/ actions and returns the game
-justPlay :: HFiaR a -> Game
-justPlay actions = let Just r = play actions in r 
+justPlay :: HFiaR a -> IO Game
+justPlay actions = play actions 
 
 -- | Starts a game, run the /HFiaRT/ actions and returns the result of the last one
-justEval :: HFiaR a -> a
-justEval actions = let Just r = eval actions in r
+justEval :: HFiaR a -> IO a
+justEval actions = eval actions
 
 -- | Starts a game, run the /HFiaRT/ actions and returns the game wrapped up in the /m/ monad
 play :: Monad m => HFiaRT m a -> m Game
@@ -82,18 +82,18 @@ dropIn c | c < 0 = return $ Left InvalidColumn
                 game <- get
                 case game of
                     Ended{} -> return $ Left GameEnded
-                    OnCourse{gameBoard = board,
-                             gamePlayer= player} ->
-                        if length (board !! c) == 7
+                    OnCourse{gameBoard = theBoard,
+                             gamePlayer= thePlayer} ->
+                        if length (theBoard !! c) == 7
                             then return $ Left FullColumn
                             else
-                                let newBoard = insertAt c (tiles player) board
-                                    newResult= if (isWinner c player newBoard) then WonBy player else Tie
-                                    newGame  = if (full newBoard || (newResult == WonBy player))
+                                let newBoard = insertAt c (tiles thePlayer) theBoard
+                                    newResult= if (isWinner c thePlayer newBoard) then WonBy thePlayer else Tie
+                                    newGame  = if (full newBoard || (newResult == WonBy thePlayer))
                                                    then Ended{gameResult = newResult,
                                                               gameBoard  = newBoard}
                                                    else OnCourse{gameBoard = newBoard,
-                                                                 gamePlayer= otherPlayer player}
+                                                                 gamePlayer= otherPlayer thePlayer}
                                  in put newGame >>= return . Right
     where insertAt :: Int -> a -> [[a]] -> [[a]]
           insertAt i x xss = (take i xss) ++ ( (x : (xss !! i)) : drop (i+1) xss)
@@ -106,25 +106,25 @@ dropIn c | c < 0 = return $ Left InvalidColumn
           full = all (\x -> 7 == length x)
           
           isWinner :: Int -> Player -> [[Tile]] -> Bool
-          isWinner c Pl{tiles=p} b =
-            let col = b !! c
+          isWinner cc Pl{tiles=p} b =
+            let col = b !! cc
              in ([p,p,p,p] == take 4 col) ||
                 fourIn (getRow (length col - 1) b) ||
-                fourIn (getDiagUpRight c (length col - 1) b) ||
-                fourIn (getDiagUpLeft  c (length col - 1) b)
+                fourIn (getDiagUpRight cc (length col - 1) b) ||
+                fourIn (getDiagUpLeft  cc (length col - 1) b)
 
           getRow :: Int -> [[Tile]] -> [Maybe Tile]
           getRow r = map (cell r)
           
           getDiagUpRight :: Int -> Int -> [[Tile]] -> [Maybe Tile]
-          getDiagUpRight c r xss = map (\i -> cell (i+r-c) (xss !! i)) [0..6]
+          getDiagUpRight cc r xss = map (\i -> cell (i+r-cc) (xss !! i)) [0..6]
           
           getDiagUpLeft :: Int -> Int -> [[Tile]] -> [Maybe Tile]
-          getDiagUpLeft c r xss = map (\i -> cell (r+c-i) (xss !! i)) [0..6]
+          getDiagUpLeft cc r xss = map (\i -> cell (r+cc-i) (xss !! i)) [0..6]
           
           cell :: Int -> [Tile] -> Maybe Tile
-          cell c xs = if (c >= 0 && c < length xs)
-                        then Just $ (reverse xs) !! c
+          cell cc xs = if (cc >= 0 && cc < length xs)
+                        then Just $ (reverse xs) !! cc
                         else Nothing
 
           fourIn :: [Maybe Tile] -> Bool

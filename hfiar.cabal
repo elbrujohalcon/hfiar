@@ -1,5 +1,5 @@
 name: hfiar
-version: 1.2.0
+version: 2.0.0
 cabal-version: >=1.6
 build-type: Custom
 license: BSD3
@@ -39,5 +39,5 @@ Executable hfiar
     main-is: Main.hs
     buildable: True
     hs-source-dirs: src
-    other-modules: HFiaR.AI, HFiaR.GUI, HFiaR.Server
+    other-modules: HFiaR.GUI, HFiaR.Server
     ghc-options: -fwarn-unused-imports -fwarn-missing-fields -fwarn-incomplete-patterns
