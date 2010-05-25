@@ -18,7 +18,7 @@ data HFiaRError = GameEnded | GameNotEnded | InvalidColumn | FullColumn
     
 instance Show HFiaRError where
     show GameEnded      = "Game ended"
-    show GameNotEnded   = "Game is on course yet"
+    show GameNotEnded   = "Game is still on course"
     show InvalidColumn  = "That column doesn't exist"
     show FullColumn     = "That column is full"
 
