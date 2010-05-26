@@ -5,7 +5,7 @@ module HFiaR (
 -- * Monad controls
     HFiaR, justPlay, justEval,
 -- * Types
-    Game, Player(..), Tile(..), HFiaRError(..), HFiaRResult(..),
+    Game(..), Player(..), Tile(..), HFiaRError(..), HFiaRResult(..),
 -- * Actions
     dropIn, tryDropIn, player, board, result
     ) where
