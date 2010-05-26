@@ -1,5 +1,5 @@
 name: hfiar
-version: 2.0.1
+version: 2.0.3
 cabal-version: >=1.6
 build-type: Custom
 license: BSD3
@@ -30,6 +30,7 @@ Library
                    eprocess >= 1.1.2,           eprocess < 2
     extensions: MultiParamTypeClasses, GeneralizedNewtypeDeriving
     exposed-modules: HFiaR
+    other-modules: HFiaR.AI
     hs-source-dirs: src
 
 Executable hfiar
@@ -40,4 +41,4 @@ Executable hfiar
     buildable: True
     hs-source-dirs: src
     other-modules: HFiaR.GUI, HFiaR.Server
-    ghc-options: -fwarn-unused-imports -fwarn-missing-fields -fwarn-incomplete-patterns
+    ghc-options: -Wall

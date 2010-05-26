@@ -7,7 +7,7 @@ module HFiaR (
 -- * Types
     Game, Player(..), Tile(..), HFiaRError(..), HFiaRResult(..),
 -- * Actions
-    dropIn, player, board, result
+    dropIn, tryDropIn, player, board, result
     ) where
 
 import Control.Monad.State
@@ -75,26 +75,30 @@ eval actions = (state actions) `evalStateT` (OnCourse (Pl Green) (replicate 7 []
 -- | Drop a tile in a column
 dropIn :: Monad m => Int -- ^ Column number
        -> HFiaRT m (Either HFiaRError ())
-dropIn c | c < 0 = return $ Left InvalidColumn
-         | 6 < c = return $ Left InvalidColumn
-         | otherwise =
-            do
-                game <- get
-                case game of
-                    Ended{} -> return $ Left GameEnded
-                    OnCourse{gameBoard = theBoard,
-                             gamePlayer= thePlayer} ->
-                        if length (theBoard !! c) == 7
-                            then return $ Left FullColumn
-                            else
-                                let newBoard = insertAt c (tiles thePlayer) theBoard
-                                    newResult= if (isWinner c thePlayer newBoard) then WonBy thePlayer else Tie
-                                    newGame  = if (full newBoard || (newResult == WonBy thePlayer))
-                                                   then Ended{gameResult = newResult,
-                                                              gameBoard  = newBoard}
-                                                   else OnCourse{gameBoard = newBoard,
-                                                                 gamePlayer= otherPlayer thePlayer}
-                                 in put newGame >>= return . Right
+dropIn c = do
+                res <- get >>= return . doDropIn c 
+                case res of
+                    Left err -> return $ Left err
+                    Right newGame -> put newGame >>= return . Right
+
+-- | Try (i.e. without actually doing it, returns the result of) dropping a tile in a column
+tryDropIn :: Monad m => Int -> HFiaRT m (Either HFiaRError Game)
+tryDropIn c = get >>= return . doDropIn c
+
+doDropIn :: Int -> Game -> Either HFiaRError Game
+doDropIn _ Ended{} = Left GameEnded
+doDropIn c OnCourse{gameBoard = theBoard,
+                    gamePlayer= thePlayer} | c < 0 = Left InvalidColumn
+                                           | 6 < c = Left InvalidColumn
+                                           | length (theBoard !! c) == 7 = Left FullColumn
+                                           | otherwise =
+                                                let newBoard = insertAt c (tiles thePlayer) theBoard
+                                                    newResult= if (isWinner c thePlayer newBoard) then WonBy thePlayer else Tie
+                                                 in if (full newBoard || (newResult == WonBy thePlayer))
+                                                       then Right Ended{gameResult = newResult,
+                                                                        gameBoard  = newBoard}
+                                                       else Right OnCourse{gameBoard = newBoard,
+                                                                           gamePlayer= otherPlayer thePlayer}
     where insertAt :: Int -> a -> [[a]] -> [[a]]
           insertAt i x xss = (take i xss) ++ ( (x : (xss !! i)) : drop (i+1) xss)
           
