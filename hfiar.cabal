@@ -1,5 +1,5 @@
 name: hfiar
-version: 2.0.4
+version: 2.1.0
 cabal-version: >=1.6
 build-type: Custom
 license: BSD3
@@ -30,6 +30,7 @@ Library
                    eprocess >= 1.1.2,           eprocess < 2
     extensions: MultiParamTypeClasses, GeneralizedNewtypeDeriving
     exposed-modules: HFiaR
+    other-modules: HFiaR.AI
     hs-source-dirs: src
 
 Executable hfiar
