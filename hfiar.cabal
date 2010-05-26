@@ -30,7 +30,6 @@ Library
                    eprocess >= 1.1.2,           eprocess < 2
     extensions: MultiParamTypeClasses, GeneralizedNewtypeDeriving
     exposed-modules: HFiaR
-    other-modules: HFiaR.AI
     hs-source-dirs: src
 
 Executable hfiar

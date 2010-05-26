@@ -82,8 +82,11 @@ dropIn c = do
                     Right newGame -> put newGame >>= return . Right
 
 -- | Try (i.e. without actually doing it, returns the result of) dropping a tile in a column
-tryDropIn :: Monad m => Int -> HFiaRT m (Either HFiaRError Game)
-tryDropIn c = get >>= return . doDropIn c
+tryDropIn :: Monad m => [Int] -> HFiaRT m (Either HFiaRError Game)
+tryDropIn cols = get >>= return . tryDropIn' cols . Right
+    where tryDropIn' [] res = res
+          tryDropIn' _ (Left err) = Left err
+          tryDropIn' (c:cs) (Right g) = tryDropIn' cs $ doDropIn c g
 
 doDropIn :: Int -> Game -> Either HFiaRError Game
 doDropIn _ Ended{} = Left GameEnded
